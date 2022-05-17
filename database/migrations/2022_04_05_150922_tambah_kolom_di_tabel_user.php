@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class TambahKolomUser extends Migration
+class TambahKolomDiTabelUser extends Migration
 {
     /**
      * Run the migrations.
@@ -14,11 +14,12 @@ class TambahKolomUser extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('username', 20)->after('id')->nullable()->unique();
+            $table->string('username')->after('id')->nullable()->unique();
             $table->date('dob')->after('password')->nullable();
-            $table->string('phone', 20)->after('dob')->nullable();
+            $table->string('phone')->after('dob')->nullable();
             $table->text('address')->after('phone')->nullable();
             $table->text('picture')->after('address')->nullable();
+            $table->integer('role')->after('picture')->nullable();
         });
     }
 
