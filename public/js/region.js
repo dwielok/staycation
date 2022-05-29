@@ -21,6 +21,125 @@ function formatRupiah(angka) {
 }
 
 $(function () {
+    // hideApiBank();
+
+    $('input[name="payment"]').on("change", function () {
+        $('input[name="payment"]').not(this).prop("checked", false);
+    });
+
+    var check_tunai;
+    $("#payment_tunai").on("change", function () {
+        check_tunai = $("#payment_tunai").prop("checked");
+        if (check_tunai) {
+            // alert("Checkbox is checked.");
+            $("#pay-button").prop("disabled", false);
+            $("#trf_bank").prop("indeterminate", false);
+            hideApiBank();
+            $("#payment_type").val("cash");
+        } else {
+            // alert("Checkbox is unchecked.");
+            $("#pay-button").prop("disabled", true);
+            $("#trf_bank").prop("indeterminate", false);
+            hideApiBank();
+            $("#payment_type").val("");
+        }
+    });
+
+    var trf_bank;
+    $("#trf_bank").on("change", function () {
+        trf_bank = $("#trf_bank").prop("checked");
+        if (trf_bank) {
+            // alert("Checkbox is checked.");
+            $("#pay-button").prop("disabled", true);
+            $("#trf_bank").prop("indeterminate", true);
+            callApiBank();
+            $("#payment_type").val("bank");
+            $("#id_rekening").val("");
+        } else {
+            // alert("Checkbox is unchecked.");
+            $("#trf_bank").prop("indeterminate", false);
+            $("#pay-button").prop("disabled", true);
+            hideApiBank();
+            $("#payment_type").val("");
+            $("#id_rekening").val("");
+        }
+    });
+
+    function hideApiBank() {
+        $("#display-rekening").hide();
+    }
+
+    function callApiBank() {
+        $("#display-rekening").show();
+        $("#display-rekening").empty();
+        $.ajax({
+            type: "GET",
+            url: "/api/rekening",
+            success: function (data) {
+                // the next thing you want to do
+                console.log(data);
+                var $display = $("#display-rekening");
+                for (var i = 0; i < data.length; i++) {
+                    $display.append(
+                        "<div class='form-check'>" +
+                            "<input class='form-check-input' type='checkbox' name='rekening' id='rekening" +
+                            data[i].id +
+                            "' value='" +
+                            data[i].id +
+                            "'>" +
+                            "<div class='d-flex flex-column' for='rekening" +
+                            data[i].id +
+                            "'>" +
+                            "<label class='form-check-label text-muted' for='rekening" +
+                            data[i].id +
+                            "'>" +
+                            data[i].nama +
+                            " - " +
+                            "<label class='form-check-label text-muted font-weight-600' for='rekening" +
+                            data[i].id +
+                            "'>" +
+                            data[i].no_rekening +
+                            "</label>" +
+                            "</label><label class='form-check-label text-muted' for='rekening" +
+                            data[i].id +
+                            "'>" +
+                            "a/n " +
+                            data[i].atas_nama +
+                            "</label>" +
+                            "</div>" +
+                            "</div>"
+                    );
+                }
+            },
+        });
+    }
+
+    $(document).on("click", 'input[name="rekening"]', function () {
+        $('input[name="rekening"]').not(this).prop("checked", false);
+        var atLeastOneIsChecked =
+            $('input[name="rekening"]:checked').length > 0;
+        if (atLeastOneIsChecked) {
+            $("#pay-button").prop("disabled", false);
+            $("#trf_bank").prop("indeterminate", false);
+            $("#payment_type").val("bank");
+            $("#id_rekening").val(this.value);
+        } else {
+            $("#pay-button").prop("disabled", true);
+            $("#trf_bank").prop("indeterminate", true);
+            $("#id_rekening").val("");
+        }
+    });
+
+    $(document).on("click", "#btn-edit-profile", function (event) {
+        event.preventDefault();
+        $("#exampleModal").modal("show");
+    });
+
+    $(document).on("click", "#btn-profile-close", function (event) {
+        event.preventDefault();
+        $("#exampleModal").modal("hide");
+    });
+
     $.ajax({
         type: "GET",
         url: "http://dev.farizdotid.com/api/daerahindonesia/provinsi",
@@ -83,7 +202,7 @@ $(function () {
 
         var price = $("#price").val();
         var finalPrice = formatRupiah(Number(actual) * Number(price));
-        $("#duration").val(diffDays);
+        $("#duration").val(actual);
         $("#total_price").val(finalPrice);
         $("#total-div").html(finalPrice);
     });
@@ -96,13 +215,15 @@ $(function () {
         const secondDate = new Date(date_end);
 
         let diffDays = Math.round((secondDate - firstDate) / oneDay);
+        // diffDays = 0;
 
         let actual = diffDays < 0 ? 0 : diffDays;
 
         var price = $("#price").val();
         var finalPrice = formatRupiah(Number(actual) * Number(price));
-        $("#duration").val(diffDays);
+        $("#duration").val(actual);
         $("#total_price").val(finalPrice);
+        $("#total").val(Number(actual) * Number(price));
         $("#total-div").html(finalPrice);
     });
 
